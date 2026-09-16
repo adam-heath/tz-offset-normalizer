@@ -44,6 +44,13 @@ func main() {
 	if offset, ok := tzfmt.NormalizeAbbreviation("PST"); ok {
 		fmt.Println(offset) // -08:00
 	}
+
+	// ExtractOffset pulls the offset out of a full timestamp string
+	// without needing to know its exact layout up front.
+	logLine := "10/Oct/2000:13:55:36 -0700"
+	if offset, err := tzfmt.ExtractOffset(logLine); err == nil {
+		fmt.Println(offset) // -07:00
+	}
 }
 ```
 
@@ -71,6 +78,11 @@ rather than silently accepted.
 Ambiguous abbreviations (`IST`, `CST` outside North America, `BST`) are
 deliberately not in the lookup table — guessing wrong is worse than
 returning "unknown" and asking the caller for an explicit offset.
+
+`ExtractOffset` recognizes the offset shape at the end of a timestamp
+(RFC 3339, RFC 1123, RFC 1123Z, and Apache/Nginx common log format)
+without needing the caller to specify a layout. It only looks at the
+tail of the string; it does not parse or validate the date/time portion.
 
 ## Status
 
