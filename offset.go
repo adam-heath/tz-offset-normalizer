@@ -100,6 +100,16 @@ func OffsetMinutes(raw string) (int, error) {
 // colon separator ("5:30") as well as the compact forms people paste
 // from ISO 8601 strings ("5", "05", "530", "0530").
 func splitHoursMinutes(digits string) (hours, minutes int, err error) {
+	// strconv.Atoi accepts its own leading +/- sign, so without this
+	// check a second sign character left over from a malformed input
+	// like "++5" or "+-5" would sneak through as a valid-looking digit
+	// string instead of being rejected here.
+	for i := 0; i < len(digits); i++ {
+		if digits[i] != ':' && !isDigit(digits[i]) {
+			return 0, 0, fmt.Errorf("unrecognized offset digits %q", digits)
+		}
+	}
+
 	if idx := strings.IndexByte(digits, ':'); idx >= 0 {
 		hours, err = strconv.Atoi(digits[:idx])
 		if err != nil {
